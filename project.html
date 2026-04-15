@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>hand test · full gesture</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #ece3df;
+            font-family: 'Courier New', 'SF Mono', 'Menlo', monospace;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* intro */
+        .intro {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #2a241f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: 0.4s;
+            cursor: pointer;
+        }
+
+        .intro.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-box {
+            text-align: center;
+            background: #f5efe8;
+            padding: 40px 30px;
+            border-radius: 4px;
+            max-width: 350px;
+            margin: 20px;
+            box-shadow: 8px 8px 0 #b7a89b;
+        }
+
+        .intro-box h2 {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: #3a2c24;
+            font-weight: normal;
+            margin-bottom: 20px;
+        }
+
+        .intro-box p {
+            color: #6b5a4e;
+            font-size: 0.8rem;
+            margin: 15px 0;
+        }
+
+        .start-btn {
+            background: #3a2c24;
+            border: none;
+            color: #f5efe8;
+            padding: 12px 28px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .start-btn:hover {
+            background: #1f1813;
+        }
+
+        /* main app */
+        .app {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fffaf5;
+            border: 1px solid #d6cbbc;
+            box-shadow: 6px 6px 0 #c8b9a8;
+        }
+
+        .header {
+            background: #f0e7de;
+            padding: 20px 24px;
+            border-bottom: 2px solid #ddd0c0;
+        }
+
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: normal;
+            letter-spacing: 1px;
+            color: #3a2c24;
+        }
+
+        .header p {
+            font-size: 0.7rem;
+            color: #8b7a6b;
+            margin-top: 6px;
+        }
+
+        /* scroll area dengan teks */
+        .scroll-area {
+            height: 460px;
+            overflow-y: auto;
+            padding: 20px 24px;
+            background: #fffaf5;
+            scroll-behavior: smooth;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .scroll-area::-webkit-scrollbar-track {
+            background: #e8dfd6;
+        }
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: #b7a89b;
+        }
+
+        /* konten teks yang bisa di-zoom */
+        .text-content {
+            transition: font-size 0.1s ease;
+        }
+
+        .test-card {
+            background: #fef9f2;
+            border-left: 4px solid #c2a88d;
+            padding: 18px;
+            margin-bottom: 24px;
+            box-shadow: 2px 2px 0 #e2d4c8;
+        }
+
+        .test-card h3 {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #4d3a2c;
+            margin-bottom: 10px;
+        }
+
+        .test-card p {
+            font-size: 0.8rem;
+            color: #6c5a4b;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .mono {
+            background: #f0e8e0;
+            padding: 12px;
+            font-size: 0.7rem;
+            font-family: monospace;
+            color: #4a3a2c;
+            margin: 12px 0 8px;
+            border-left: 3px solid #b7a89b;
+        }
+
+        .status {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 3px 10px;
+            background: #e6dbcf;
+            color: #4a3a2c;
+            margin-top: 8px;
+        }
+
+        /* stat box */
+        .stat-box {
+            background: #f2ebe3;
+            padding: 16px;
+            margin: 20px 0;
+            border: 1px solid #ddd0c0;
+        }
+
+        .big-number {
+            font-size: 2.2rem;
+            font-family: monospace;
+            font-weight: bold;
+            color: #7a5a44;
+            text-align: center;
+        }
+
+        .log-box {
+            background: #f1ece5;
+            padding: 12px;
+            font-size: 0.65rem;
+            font-family: monospace;
+            height: 140px;
+            overflow-y: auto;
+            color: #4a3a2c;
+            border: 1px solid #ddd0c0;
+        }
+
+        /* zoom info bubble */
+        .zoom-bubble {
+            position: fixed;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2a241fe6;
+            color: #f0e7de;
+            padding: 8px 18px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 300;
+            pointer-events: none;
+            border-left: 3px solid #c2a88d;
+            white-space: nowrap;
+            animation: fadeOut 0.8s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; bottom: 30%; }
+            100% { opacity: 0; bottom: 40%; }
+        }
+
+        .music-bar {
+            background: #ede3d9;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-top: 1px solid #d6cbbc;
+        }
+
+        .music-bar button {
+            background: #cfbfae;
+            border: none;
+            padding: 6px 14px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: #2f241d;
+        }
+
+        .music-bar span {
+            font-size: 0.7rem;
+            color: #6b5a4e;
+            flex: 1;
+        }
+
+        footer {
+            font-size: 0.6rem;
+            text-align: center;
+            padding: 14px;
+            background: #f0e7de;
+            color: #8b7a6b;
+            border-top: 1px solid #ddd0c0;
+        }
+
+        /* camera panel */
+        .cam-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #1e1915;
+            border: 1px solid #6b5a4e;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 200;
+            font-family: monospace;
+        }
+
+        .cam-panel video {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            background: #000;
+            transform: scaleX(-1);
+        }
+
+        .cam-panel .cam-info {
+            flex: 1;
+            color: #ddd0c0;
+            font-size: 0.65rem;
+        }
+
+        .cam-panel button {
+            background: #5f4c3a;
+            border: none;
+            color: #f0e7de;
+            padding: 6px 12px;
+            font-family: monospace;
+            cursor: pointer;
+        }
+
+        .gesture-hint {
+            position: fixed;
+            bottom: 100px;
+            right: 16px;
+            background: #1e1915e6;
+            padding: 10px 14px;
+            font-size: 0.65rem;
+            font-family: monospace;
+            color: #cfbfae;
+            border-left: 3px solid #b7a89b;
+            max-width: 210px;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        .hide-cam {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="intro" id="introScreen">
+    <div class="intro-box">
+        <h2>// HAND TEST v2.0</h2>
+        <p>full gesture: scroll + zoom + fist reset<br>coba semua gerakan tangan</p>
+        <button class="start-btn" id="startBtn">[ mulai test ]</button>
+    </div>
+</div>
+
+<div class="app" id="mainApp" style="display: none;">
+    <div class="header">
+        <h1>hand tracking · full gesture test</h1>
+        <p>🖐️ telapak = scroll | 🤏 jepit = zoom teks | ✊ kepalan = reset</p>
+    </div>
+
+    <div class="scroll-area" id="scrollContainer">
+        <div class="text-content" id="textContent">
+            <div class="test-card">
+                <h3>⟡ gesture lengkap</h3>
+                <p>semua gerakan tersedia di versi ini:</p>
+                <div class="mono">
+                    > ✋ telapak terbuka -> scroll atas/bawah<br>
+                    > 🤏 jepit jari (telunjuk+ibu jari) -> zoom teks in/out<br>
+                    > ✊ kepalan tangan -> reset scroll & zoom<br>
+                    > 🖐️ geser telapak -> kontrol tambahan
+                </div>
+                <div class="status">mode: full gesture</div>
+            </div>
+
+            <div class="test-card">
+                <h3>⟡ zoom teks (pinch)</h3>
+                <p>rapatkan/jauhkan jari telunjuk dan ibu jari. teks akan membesar/mengecil.</p>
+                <div class="mono">
+                    zoom range: 0.7x - 1.8x<br>
+                    current zoom: <span id="zoomValue">1.0</span>x
+                </div>
+            </div>
+
+            <div class="stat-box">
+                <div class="big-number" id="gestureCount">0</div>
+                <div style="text-align:center; font-size:0.65rem;">total gesture terdeteksi</div>
+            </div>
+
+            <div class="test-card">
+                <h3>⟡ log sistem</h3>
+                <div class="log-box" id="logArea">
+                    [init] ready<br>
+                    [info] arahkan tangan ke kamera
+                </div>
+            </div>
+
+            <div class="test-card">
+                <h3>⟡ daftar gerakan</h3>
+                <div class="mono">
+                    ✋ telapak terbuka → scroll ↑↓<br>
+                    🤏 jepit (pinch) → zoom teks + / -<br>
+                    ✊ kepalan → reset scroll + zoom<br>
+                    🖐️ gerak cepat → deteksi gesture otomatis
+                </div>
+                <p style="margin-top:10px;">cahaya cukup membantu deteksi. kamera bisa ditutup kapan saja.</p>
+            </div>
+
+            <div class="test-card">
+                <h3>⟡ test paragraph</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <p style="margin-top:10px;">Coba pinch zoom untuk membesarkan teks ini, lalu kepalan untuk mereset.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="music-bar">
+        <button id="playPauseBtn">▶ play</button>
+        <button id="nextBtn">skip ↺</button>
+        <span id="songName">track 1</span>
+    </div>
+    <footer>hand tracking demo · ✋🤏✊ semua gesture aktif</footer>
+</div>
+
+<div class="gesture-hint" id="hintBox">
+    ✋ telapak = scroll<br>
+    🤏 jepit = zoom teks<br>
+    ✊ kepalan = reset semua
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script>
+    (function(){
+        // DOM elements
+        const introDiv = document.getElementById('introScreen');
+        const mainApp = document.getElementById('mainApp');
+        const startBtn = document.getElementById('startBtn');
+        const scrollArea = document.getElementById('scrollContainer');
+        const textContent = document.getElementById('textContent');
+        const gestureCountSpan = document.getElementById('gestureCount');
+        const logArea = document.getElementById('logArea');
+        const zoomValueSpan = document.getElementById('zoomValue');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const songNameSpan = document.getElementById('songName');
+        const hintBox = document.getElementById('hintBox');
+
+        let gestureTotal = 0;
+        let currentFontSize = 1.0; // 1.0 = normal
+        const MIN_ZOOM = 0.7;
+        const MAX_ZOOM = 1.8;
+        
+        function addLog(msg) {
+            const d = new Date();
+            const time = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
+            logArea.innerHTML += `<br>[${time}] ${msg}`;
+            logArea.scrollTop = logArea.scrollHeight;
+            if(logArea.children.length > 35) {
+                let lines = logArea.innerHTML.split('<br>');
+                lines = lines.slice(-25);
+                logArea.innerHTML = lines.join('<br>');
+            }
+        }
+        
+        function incGesture() {
+            gestureTotal++;
+            gestureCountSpan.innerText = gestureTotal;
+        }
+        
+        function applyZoom() {
+            textContent.style.fontSize = (currentFontSize * 14) + 'px';
+            zoomValueSpan.innerText = currentFontSize.toFixed(2);
+        }
+        
+        function showBubble(message, isZoom = true) {
+            const bubble = document.createElement('div');
+            bubble.className = 'zoom-bubble';
+            bubble.innerHTML = message;
+            document.body.appendChild(bubble);
+            setTimeout(() => bubble.remove(), 800);
+        }
+        
+        // audio tracks
+        const tracks = [
+            { url: "https://l.top4top.io/m_3756cgskf1.mp3", name: "track 1" },
+            { url: "https://d.uguu.se/rAurKylF.mp3", name: "track 2" },
+            { url: "https://e.top4top.io/m_3756l69fo1.mp3", name: "track 3" }
+        ];
+        let currentTrack = 0;
+        let isPlaying = false;
+        const bgAudio = new Audio();
+        bgAudio.loop = true;
+        bgAudio.volume = 0.25;
+        
+        function loadTrack(index) {
+            bgAudio.src = tracks[index].url;
+            songNameSpan.innerText = tracks[index].name;
+            bgAudio.load();
+            if(isPlaying) {
+                bgAudio.play().catch(e => addLog("audio error: " + e));
+            }
+        }
+        
+        function playAudio() {
+            bgAudio.play().then(() => {
+                isPlaying = true;
+                playPauseBtn.innerText = '⏸ pause';
+                addLog("audio start");
+            }).catch(e => addLog("play gagal: " + e));
+        }
+        
+        function pauseAudio() {
+            bgAudio.pause();
+            isPlaying = false;
+            playPauseBtn.innerText = '▶ play';
+        }
+        
+        playPauseBtn.addEventListener('click', () => {
+            if(isPlaying) pauseAudio();
+            else playAudio();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            currentTrack = (currentTrack + 1) % tracks.length;
+            loadTrack(currentTrack);
+            if(isPlaying) {
+                bgAudio.play().catch(e=>{});
+            }
+            addLog("skip ke " + tracks[currentTrack].name);
+        });
+        
+        loadTrack(0);
+        
+        // intro
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            introDiv.classList.add('hide');
+            mainApp.style.display = 'block';
+            addLog("test dimulai, akses kamera..");
+            initCamera();
+        });
+        
+        // scroll variables
+        let targetScroll = 0;
+        let currentScroll = 0;
+        
+        function animateScrollSmooth() {
+            if(scrollArea) {
+                const diff = targetScroll - currentScroll;
+                currentScroll += diff * 0.12;
+                scrollArea.scrollTop = currentScroll;
+            }
+            requestAnimationFrame(animateScrollSmooth);
+        }
+        animateScrollSmooth();
+        
+        scrollArea.addEventListener('wheel', (e) => {
+            targetScroll = scrollArea.scrollTop + e.deltaY;
+            targetScroll = Math.min(scrollArea.scrollHeight - scrollArea.clientHeight, Math.max(0, targetScroll));
+            currentScroll = targetScroll;
+        });
+        
+        // hand tracking variables
+        let handActive = false;
+        let lastHandY = null;
+        let isFistFlag = false;
+        
+        // pinch zoom variables
+        let lastPinchDistance = null;
+        let isPinching = false;
+        
+        function getPinchDistance(landmarks) {
+            const thumbTip = landmarks[4];
+            const indexTip = landmarks[8];
+            const dx = thumbTip.x - indexTip.x;
+            const dy = thumbTip.y - indexTip.y;
+            return Math.sqrt(dx*dx + dy*dy);
+        }
+        
+        function isFistGesture(landmarks) {
+            let folded = 0;
+            if(landmarks[8].y > landmarks[6].y) folded++;
+            if(landmarks[12].y > landmarks[10].y) folded++;
+            if(landmarks[16].y > landmarks[14].y) folded++;
+            if(landmarks[20].y > landmarks[18].y) folded++;
+            const thumbSpread = Math.abs(landmarks[4].x - landmarks[2].x) > 0.07;
+            return (folded >= 3 && !thumbSpread);
+        }
+        
+        function isOpenPalm(landmarks) {
+            // cek jari terbuka semua
+            const indexOpen = landmarks[8].y < landmarks[6].y;
+            const middleOpen = landmarks[12].y < landmarks[10].y;
+            const ringOpen = landmarks[16].y < landmarks[14].y;
+            const pinkyOpen = landmarks[20].y < landmarks[18].y;
+            const thumbOpen = Math.abs(landmarks[4].x - landmarks[2].x) > 0.05;
+            return (indexOpen && middleOpen && ringOpen && pinkyOpen && thumbOpen);
+        }
+        
+        let cameraInstance = null;
+        let handsInstance = null;
+        
+        function onHandResults(results) {
+            const gestureStatusDiv = document.getElementById('gestureStatusCam');
+            if(!gestureStatusDiv) return;
+            
+            if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                if(!handActive) {
+                    handActive = true;
+                    addLog("tangan terdeteksi");
+                }
+                const lm = results.multiHandLandmarks[0];
+                const fist = isFistGesture(lm);
+                const openPalm = isOpenPalm(lm);
+                const pinchDistance = getPinchDistance(lm);
+                
+                // PRIORITAS: FIST (kepalan) -> reset
+                if(fist) {
+                    if(!isFistFlag) {
+                        isFistFlag = true;
+                        addLog("✊ kepalan -> reset scroll & zoom");
+                        // reset scroll
+                        targetScroll = 0;
+                        currentScroll = 0;
+                        scrollArea.scrollTop = 0;
+                        // reset zoom
+                        currentFontSize = 1.0;
+                        applyZoom();
+                        incGesture();
+                        gestureStatusDiv.innerText = "✊ RESET!";
+                        showBubble("✊ RESET SEMUA", false);
+                    } else {
+                        gestureStatusDiv.innerText = "✊ kepalan (tahan)";
+                    }
+                    // reset pinch state
+                    lastPinchDistance = null;
+                    isPinching = false;
+                    return;
+                } else {
+                    isFistFlag = false;
+                }
+                
+                // PRIORITAS KEDUA: PINCH (jepit jari) -> zoom teks
+                // deteksi pinch: jarak antara thumb dan index tip
+                if(lastPinchDistance !== null && openPalm === false) {
+                    const delta = pinchDistance - lastPinchDistance;
+                    if(Math.abs(delta) > 0.008) {
+                        const oldZoom = currentFontSize;
+                        let newZoom = currentFontSize + (delta * 1.5);
+                        newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
+                        
+                        if(newZoom !== oldZoom) {
+                            currentFontSize = newZoom;
+                            applyZoom();
+                            const isZoomIn = newZoom > oldZoom;
+                            const percent = Math.round(newZoom * 100);
+                            showBubble(isZoomIn ? `🔍➕ zoom ${percent}%` : `🔍➖ zoom ${percent}%`, true);
+                            gestureStatusDiv.innerText = `🤏 pinch ${isZoomIn ? 'in' : 'out'} ${percent}%`;
+                            incGesture();
+                            addLog(`pinch ${isZoomIn ? 'in' : 'out'} -> ${percent}%`);
+                        } else {
+                            gestureStatusDiv.innerText = `🤏 pinch zoom: ${Math.round(currentFontSize*100)}%`;
+                        }
+                        isPinching = true;
+                    } else {
+                        if(isPinching) {
+                            isPinching = false;
+                            gestureStatusDiv.innerText = "telapak - gerakkan scroll";
+                        }
+                    }
+                }
+                lastPinchDistance = pinchDistance;
+                
+                // PRIORITAS KETIGA: SCROLL (gerakan telapak)
+                // hanya scroll jika bukan sedang pinch dan bukan fist
+                if(!isPinching && !fist) {
+                    const palmY = lm[0].y;
+                    if(lastHandY !== null) {
+                        let delta = palmY - lastHandY;
+                        let speed = delta * 550;
+                        if(Math.abs(speed) > 1.5) {
+                            let newTop = scrollArea.scrollTop + speed;
+                            newTop = Math.min(scrollArea.scrollHeight - scrollArea.clientHeight, Math.max(0, newTop));
+                            targetScroll = newTop;
+                            currentScroll = newTop;
+                            scrollArea.scrollTop = newTop;
+                            const dir = speed > 0 ? 'down' : 'up';
+                            gestureStatusDiv.innerText = `📜 scroll ${dir}`;
+                            if(Math.abs(speed) > 12) incGesture();
+                        } else {
+                            if(openPalm) gestureStatusDiv.innerText = "🖐️ telapak - gerakkan";
+                            else gestureStatusDiv.innerText = "✋ arahkan telapak";
+                        }
+                    }
+                    lastHandY = palmY;
+                } else if(!fist) {
+                    // sedang pinch, jangan update lastHandY
+                    // biar scroll tidak ikut bergerak
+                }
+                
+            } else {
+                if(handActive) {
+                    handActive = false;
+                    addLog("tangan hilang");
+                    if(gestureStatusDiv) gestureStatusDiv.innerText = "tidak terdeteksi";
+                }
+                lastHandY = null;
+                isFistFlag = false;
+                lastPinchDistance = null;
+                isPinching = false;
+            }
+        }
+        
+        function initCamera() {
+            const camOverlay = document.createElement('div');
+            camOverlay.className = 'cam-panel';
+            camOverlay.id = 'camPanel';
+            camOverlay.innerHTML = `
+                <video id="handVideoFeed" autoplay muted playsinline></video>
+                <div class="cam-info">
+                    <div id="gestureStatusCam">🖐️ arahkan tangan</div>
+                    <div style="font-size:0.6rem; margin-top:4px;">✋ scroll | 🤏 zoom | ✊ reset</div>
+                </div>
+                <button id="closeCamBtn">tutup</button>
+            `;
+            document.body.appendChild(camOverlay);
+            
+            const videoFeed = document.getElementById('handVideoFeed');
+            
+            handsInstance = new Hands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+            handsInstance.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            handsInstance.onResults(onHandResults);
+            
+            const cameraObj = new Camera(videoFeed, {
+                onFrame: async () => {
+                    await handsInstance.send({image: videoFeed});
+                },
+                width: 300,
+                height: 200
+            });
+            cameraObj.start();
+            
+            document.getElementById('closeCamBtn').addEventListener('click', () => {
+                if(cameraObj) cameraObj.stop();
+                camOverlay.remove();
+                addLog("kamera dimatikan, scroll manual tetap jalan");
+                if(hintBox) hintBox.style.display = 'block';
+            });
+            
+            if(hintBox) hintBox.style.display = 'none';
+            addLog("kamera aktif, semua gesture siap: ✋ scroll | 🤏 zoom | ✊ reset");
+        }
+        
+        // efek klik random
+        document.body.addEventListener('click', (e) => {
+            if(mainApp.style.display === 'block') {
+                const ripple = document.createElement('div');
+                ripple.innerText = '⚡';
+                ripple.style.position = 'fixed';
+                ripple.style.left = (e.clientX - 10) + 'px';
+                ripple.style.top = (e.clientY - 10) + 'px';
+                ripple.style.fontSize = '16px';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.zIndex = '999';
+                ripple.style.opacity = '0.6';
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 400);
+            }
+        });
+        
+        addLog("siap. semua gesture aktif: telapak(scroll) | jepit(zoom) | kepalan(reset)");
+        applyZoom();
+    })();
+</script>
+</body>
+</html>
