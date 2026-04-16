@@ -1,757 +1,481 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en" style="margin:0; overflow:hidden;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>hand test · full gesture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Right Hand Exclusive - 3D Particle Universe</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background: #ece3df;
-            font-family: 'Courier New', 'SF Mono', 'Menlo', monospace;
-            padding: 20px;
-            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Avenir', 'Inter', system-ui, -apple-system, sans-serif;
         }
-
-        /* intro */
-        .intro {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #2a241f;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            transition: 0.4s;
-            cursor: pointer;
-        }
-
-        .intro.hide {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .intro-box {
-            text-align: center;
-            background: #f5efe8;
-            padding: 40px 30px;
-            border-radius: 4px;
-            max-width: 350px;
-            margin: 20px;
-            box-shadow: 8px 8px 0 #b7a89b;
-        }
-
-        .intro-box h2 {
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            color: #3a2c24;
-            font-weight: normal;
-            margin-bottom: 20px;
-        }
-
-        .intro-box p {
-            color: #6b5a4e;
-            font-size: 0.8rem;
-            margin: 15px 0;
-        }
-
-        .start-btn {
-            background: #3a2c24;
-            border: none;
-            color: #f5efe8;
-            padding: 12px 28px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .start-btn:hover {
-            background: #1f1813;
-        }
-
-        /* main app */
-        .app {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fffaf5;
-            border: 1px solid #d6cbbc;
-            box-shadow: 6px 6px 0 #c8b9a8;
-        }
-
-        .header {
-            background: #f0e7de;
-            padding: 20px 24px;
-            border-bottom: 2px solid #ddd0c0;
-        }
-
-        .header h1 {
-            font-size: 1.1rem;
-            font-weight: normal;
-            letter-spacing: 1px;
-            color: #3a2c24;
-        }
-
-        .header p {
-            font-size: 0.7rem;
-            color: #8b7a6b;
-            margin-top: 6px;
-        }
-
-        /* scroll area dengan teks */
-        .scroll-area {
-            height: 460px;
-            overflow-y: auto;
-            padding: 20px 24px;
-            background: #fffaf5;
-            scroll-behavior: smooth;
-        }
-
-        .scroll-area::-webkit-scrollbar {
-            width: 5px;
-        }
-        .scroll-area::-webkit-scrollbar-track {
-            background: #e8dfd6;
-        }
-        .scroll-area::-webkit-scrollbar-thumb {
-            background: #b7a89b;
-        }
-
-        /* konten teks yang bisa di-zoom */
-        .text-content {
-            transition: font-size 0.1s ease;
-        }
-
-        .test-card {
-            background: #fef9f2;
-            border-left: 4px solid #c2a88d;
-            padding: 18px;
-            margin-bottom: 24px;
-            box-shadow: 2px 2px 0 #e2d4c8;
-        }
-
-        .test-card h3 {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #4d3a2c;
-            margin-bottom: 10px;
-        }
-
-        .test-card p {
-            font-size: 0.8rem;
-            color: #6c5a4b;
-            line-height: 1.5;
-            margin-bottom: 10px;
-        }
-
-        .mono {
-            background: #f0e8e0;
-            padding: 12px;
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: #4a3a2c;
-            margin: 12px 0 8px;
-            border-left: 3px solid #b7a89b;
-        }
-
-        .status {
-            display: inline-block;
-            font-size: 0.65rem;
-            padding: 3px 10px;
-            background: #e6dbcf;
-            color: #4a3a2c;
-            margin-top: 8px;
-        }
-
-        /* stat box */
-        .stat-box {
-            background: #f2ebe3;
-            padding: 16px;
-            margin: 20px 0;
-            border: 1px solid #ddd0c0;
-        }
-
-        .big-number {
-            font-size: 2.2rem;
-            font-family: monospace;
-            font-weight: bold;
-            color: #7a5a44;
-            text-align: center;
-        }
-
-        .log-box {
-            background: #f1ece5;
-            padding: 12px;
-            font-size: 0.65rem;
-            font-family: monospace;
-            height: 140px;
-            overflow-y: auto;
-            color: #4a3a2c;
-            border: 1px solid #ddd0c0;
-        }
-
-        /* zoom info bubble */
-        .zoom-bubble {
-            position: fixed;
-            bottom: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #2a241fe6;
-            color: #f0e7de;
-            padding: 8px 18px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            z-index: 300;
-            pointer-events: none;
-            border-left: 3px solid #c2a88d;
-            white-space: nowrap;
-            animation: fadeOut 0.8s forwards;
-        }
-
-        @keyframes fadeOut {
-            0% { opacity: 1; bottom: 30%; }
-            100% { opacity: 0; bottom: 40%; }
-        }
-
-        .music-bar {
-            background: #ede3d9;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            border-top: 1px solid #d6cbbc;
-        }
-
-        .music-bar button {
-            background: #cfbfae;
-            border: none;
-            padding: 6px 14px;
-            font-family: monospace;
-            font-size: 0.7rem;
-            cursor: pointer;
-            color: #2f241d;
-        }
-
-        .music-bar span {
-            font-size: 0.7rem;
-            color: #6b5a4e;
-            flex: 1;
-        }
-
-        footer {
-            font-size: 0.6rem;
-            text-align: center;
-            padding: 14px;
-            background: #f0e7de;
-            color: #8b7a6b;
-            border-top: 1px solid #ddd0c0;
-        }
-
-        /* camera panel */
-        .cam-panel {
-            position: fixed;
+        #info {
+            position: absolute;
             bottom: 20px;
             left: 20px;
-            right: 20px;
-            background: #1e1915;
-            border: 1px solid #6b5a4e;
-            padding: 12px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            z-index: 200;
-            font-family: monospace;
-        }
-
-        .cam-panel video {
-            width: 80px;
-            height: 60px;
-            object-fit: cover;
-            background: #000;
-            transform: scaleX(-1);
-        }
-
-        .cam-panel .cam-info {
-            flex: 1;
-            color: #ddd0c0;
-            font-size: 0.65rem;
-        }
-
-        .cam-panel button {
-            background: #5f4c3a;
-            border: none;
-            color: #f0e7de;
-            padding: 6px 12px;
-            font-family: monospace;
-            cursor: pointer;
-        }
-
-        .gesture-hint {
-            position: fixed;
-            bottom: 100px;
-            right: 16px;
-            background: #1e1915e6;
-            padding: 10px 14px;
-            font-size: 0.65rem;
-            font-family: monospace;
-            color: #cfbfae;
-            border-left: 3px solid #b7a89b;
-            max-width: 210px;
+            color: white;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            padding: 12px 20px;
+            border-radius: 40px;
             pointer-events: none;
-            z-index: 200;
+            z-index: 20;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            border-left: 3px solid #ff3366;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
-
-        .hide-cam {
-            display: none;
+        #status {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #0f0;
+            pointer-events: none;
+            z-index: 20;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        .instruction {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #ddd;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 20;
+        }
+        @media (max-width: 600px) {
+            #info { font-size: 10px; bottom: 10px; left: 10px; padding: 6px 12px; }
+            #status { font-size: 10px; bottom: 10px; right: 10px; }
         }
     </style>
 </head>
 <body>
-
-<div class="intro" id="introScreen">
-    <div class="intro-box">
-        <h2>// HAND TEST v2.0</h2>
-        <p>full gesture: scroll + zoom + fist reset<br>coba semua gerakan tangan</p>
-        <button class="start-btn" id="startBtn">[ mulai test ]</button>
+    <div id="info">
+        ✨ COSMIC HANDSCAPE | RIGHT HAND EXCLUSIVE TRACKING ✨<br>
+        <span style="font-size:11px; opacity:0.8;">Move your right hand → navigate the particle universe | Pinch → warp field intensity</span>
     </div>
-</div>
-
-<div class="app" id="mainApp" style="display: none;">
-    <div class="header">
-        <h1>hand tracking · full gesture test</h1>
-        <p>🖐️ telapak = scroll | 🤏 jepit = zoom teks | ✊ kepalan = reset</p>
+    <div id="status">
+        🟢 RIGHT HAND ACTIVE
+    </div>
+    <div class="instruction">
+        🖐️ RIGHT HAND ONLY | MediaPipe
     </div>
 
-    <div class="scroll-area" id="scrollContainer">
-        <div class="text-content" id="textContent">
-            <div class="test-card">
-                <h3>⟡ gesture lengkap</h3>
-                <p>semua gerakan tersedia di versi ini:</p>
-                <div class="mono">
-                    > ✋ telapak terbuka -> scroll atas/bawah<br>
-                    > 🤏 jepit jari (telunjuk+ibu jari) -> zoom teks in/out<br>
-                    > ✊ kepalan tangan -> reset scroll & zoom<br>
-                    > 🖐️ geser telapak -> kontrol tambahan
-                </div>
-                <div class="status">mode: full gesture</div>
-            </div>
-
-            <div class="test-card">
-                <h3>⟡ zoom teks (pinch)</h3>
-                <p>rapatkan/jauhkan jari telunjuk dan ibu jari. teks akan membesar/mengecil.</p>
-                <div class="mono">
-                    zoom range: 0.7x - 1.8x<br>
-                    current zoom: <span id="zoomValue">1.0</span>x
-                </div>
-            </div>
-
-            <div class="stat-box">
-                <div class="big-number" id="gestureCount">0</div>
-                <div style="text-align:center; font-size:0.65rem;">total gesture terdeteksi</div>
-            </div>
-
-            <div class="test-card">
-                <h3>⟡ log sistem</h3>
-                <div class="log-box" id="logArea">
-                    [init] ready<br>
-                    [info] arahkan tangan ke kamera
-                </div>
-            </div>
-
-            <div class="test-card">
-                <h3>⟡ daftar gerakan</h3>
-                <div class="mono">
-                    ✋ telapak terbuka → scroll ↑↓<br>
-                    🤏 jepit (pinch) → zoom teks + / -<br>
-                    ✊ kepalan → reset scroll + zoom<br>
-                    🖐️ gerak cepat → deteksi gesture otomatis
-                </div>
-                <p style="margin-top:10px;">cahaya cukup membantu deteksi. kamera bisa ditutup kapan saja.</p>
-            </div>
-
-            <div class="test-card">
-                <h3>⟡ test paragraph</h3>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                <p style="margin-top:10px;">Coba pinch zoom untuk membesarkan teks ini, lalu kepalan untuk mereset.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="music-bar">
-        <button id="playPauseBtn">▶ play</button>
-        <button id="nextBtn">skip ↺</button>
-        <span id="songName">track 1</span>
-    </div>
-    <footer>hand tracking demo · ✋🤏✊ semua gesture aktif</footer>
-</div>
-
-<div class="gesture-hint" id="hintBox">
-    ✋ telapak = scroll<br>
-    🤏 jepit = zoom teks<br>
-    ✊ kepalan = reset semua
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
-<script>
-    (function(){
-        // DOM elements
-        const introDiv = document.getElementById('introScreen');
-        const mainApp = document.getElementById('mainApp');
-        const startBtn = document.getElementById('startBtn');
-        const scrollArea = document.getElementById('scrollContainer');
-        const textContent = document.getElementById('textContent');
-        const gestureCountSpan = document.getElementById('gestureCount');
-        const logArea = document.getElementById('logArea');
-        const zoomValueSpan = document.getElementById('zoomValue');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const songNameSpan = document.getElementById('songName');
-        const hintBox = document.getElementById('hintBox');
-
-        let gestureTotal = 0;
-        let currentFontSize = 1.0; // 1.0 = normal
-        const MIN_ZOOM = 0.7;
-        const MAX_ZOOM = 1.8;
-        
-        function addLog(msg) {
-            const d = new Date();
-            const time = `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
-            logArea.innerHTML += `<br>[${time}] ${msg}`;
-            logArea.scrollTop = logArea.scrollHeight;
-            if(logArea.children.length > 35) {
-                let lines = logArea.innerHTML.split('<br>');
-                lines = lines.slice(-25);
-                logArea.innerHTML = lines.join('<br>');
+    <!-- Import Three.js core and add-ons -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
             }
         }
+    </script>
+    
+    <!-- MediaPipe libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         
-        function incGesture() {
-            gestureTotal++;
-            gestureCountSpan.innerText = gestureTotal;
+        // --------------------------------------------------------------
+        // 1. SETUP SCENE, CAMERA, RENDERER (HIGH PERFORMANCE)
+        // --------------------------------------------------------------
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x010115);
+        scene.fog = new THREE.FogExp2(0x010115, 0.00035); // subtle fog for depth
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(12, 6, 18);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        document.body.appendChild(renderer.domElement);
+
+        // Post-processing bloom for ethereal glow
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.85);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.65;
+        bloomPass.radius = 0.5;
+        const effectComposer = new EffectComposer(renderer);
+        effectComposer.addPass(renderScene);
+        effectComposer.addPass(bloomPass);
+
+        // subtle starfield background (static)
+        const starGeometry = new THREE.BufferGeometry();
+        const starCount = 1800;
+        const starPositions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            starPositions[i*3] = (Math.random() - 0.5) * 400;
+            starPositions[i*3+1] = (Math.random() - 0.5) * 200;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 150 - 70;
         }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, transparent: true, opacity: 0.6 });
+        const starsField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starsField);
         
-        function applyZoom() {
-            textContent.style.fontSize = (currentFontSize * 14) + 'px';
-            zoomValueSpan.innerText = currentFontSize.toFixed(2);
-        }
+        // --------------------------------------------------------------
+        // 2. PARTICLE SYSTEM: "OBSERVABLE UNIVERSE / NEBULAR SWIRL"
+        //    High particle count with dynamic color & lerp smoothing.
+        //    Decoupled physics: only visual rotation / breathing via time.
+        // --------------------------------------------------------------
+        const PARTICLE_COUNT = 28000;
+        const geometry = new THREE.BufferGeometry();
         
-        function showBubble(message, isZoom = true) {
-            const bubble = document.createElement('div');
-            bubble.className = 'zoom-bubble';
-            bubble.innerHTML = message;
-            document.body.appendChild(bubble);
-            setTimeout(() => bubble.remove(), 800);
-        }
+        // positions array
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        // colors array
+        const colors = new Float32Array(PARTICLE_COUNT * 3);
         
-        // audio tracks
-        const tracks = [
-            { url: "https://l.top4top.io/m_3756cgskf1.mp3", name: "track 1" },
-            { url: "https://d.uguu.se/rAurKylF.mp3", name: "track 2" },
-            { url: "https://e.top4top.io/m_3756l69fo1.mp3", name: "track 3" }
-        ];
-        let currentTrack = 0;
-        let isPlaying = false;
-        const bgAudio = new Audio();
-        bgAudio.loop = true;
-        bgAudio.volume = 0.25;
-        
-        function loadTrack(index) {
-            bgAudio.src = tracks[index].url;
-            songNameSpan.innerText = tracks[index].name;
-            bgAudio.load();
-            if(isPlaying) {
-                bgAudio.play().catch(e => addLog("audio error: " + e));
+        // Generate particles in a toroidal / spherical hybrid with layered arms (cosmic style)
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            // Mix of spherical distribution + spiral arm hints
+            const choice = Math.random();
+            let radius, theta, phi;
+            if (choice < 0.65) {
+                // Main disc / torus influenced zone
+                radius = 5.5 + Math.pow(Math.random(), 1.2) * 7.5;
+                theta = Math.random() * Math.PI * 2;
+                const armOffset = Math.sin(theta * 5) * 1.2;
+                const radialVar = radius + armOffset * 1.2;
+                phi = Math.sin(theta * 3) * 0.8 + (Math.random() - 0.5) * 0.9;
+                const x = Math.cos(theta) * radialVar;
+                const z = Math.sin(theta) * radialVar;
+                const y = Math.sin(phi * 1.8) * 2.2 + Math.cos(theta * 4) * 1.2;
+                positions[i*3] = x;
+                positions[i*3+1] = y * 1.4;
+                positions[i*3+2] = z;
+            } else {
+                // outer halo / globular clusters
+                radius = 11 + Math.random() * 6;
+                theta = Math.random() * Math.PI * 2;
+                phi = Math.acos(2 * Math.random() - 1);
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
+                const z = radius * Math.cos(phi) * 1.2;
+                positions[i*3] = x;
+                positions[i*3+1] = y;
+                positions[i*3+2] = z;
             }
-        }
-        
-        function playAudio() {
-            bgAudio.play().then(() => {
-                isPlaying = true;
-                playPauseBtn.innerText = '⏸ pause';
-                addLog("audio start");
-            }).catch(e => addLog("play gagal: " + e));
-        }
-        
-        function pauseAudio() {
-            bgAudio.pause();
-            isPlaying = false;
-            playPauseBtn.innerText = '▶ play';
-        }
-        
-        playPauseBtn.addEventListener('click', () => {
-            if(isPlaying) pauseAudio();
-            else playAudio();
-        });
-        
-        nextBtn.addEventListener('click', () => {
-            currentTrack = (currentTrack + 1) % tracks.length;
-            loadTrack(currentTrack);
-            if(isPlaying) {
-                bgAudio.play().catch(e=>{});
+            
+            // vibrant colors based on radius and angle
+            const rPos = Math.sqrt(positions[i*3]*positions[i*3] + positions[i*3+1]*positions[i*3+1] + positions[i*3+2]*positions[i*3+2]);
+            const hue = (Math.atan2(positions[i*3+2], positions[i*3]) + Math.PI) / (2 * Math.PI);
+            let rCol = 0.4 + 0.6 * Math.sin(hue * Math.PI * 2);
+            let gCol = 0.3 + 0.7 * Math.cos(hue * Math.PI * 2 + 2.0);
+            let bCol = 0.6 + 0.4 * Math.sin(hue * Math.PI * 3 + 1.2);
+            
+            // emphasize inner region with cyan/magenta
+            if (rPos < 6) {
+                rCol = 0.8 + Math.random()*0.2;
+                gCol = 0.3 + Math.random()*0.4;
+                bCol = 0.9 + Math.random()*0.1;
+            } else if (rPos > 12) {
+                rCol = 0.5 + Math.random()*0.3;
+                gCol = 0.4 + Math.random()*0.4;
+                bCol = 0.9;
             }
-            addLog("skip ke " + tracks[currentTrack].name);
-        });
-        
-        loadTrack(0);
-        
-        // intro
-        startBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            introDiv.classList.add('hide');
-            mainApp.style.display = 'block';
-            addLog("test dimulai, akses kamera..");
-            initCamera();
-        });
-        
-        // scroll variables
-        let targetScroll = 0;
-        let currentScroll = 0;
-        
-        function animateScrollSmooth() {
-            if(scrollArea) {
-                const diff = targetScroll - currentScroll;
-                currentScroll += diff * 0.12;
-                scrollArea.scrollTop = currentScroll;
-            }
-            requestAnimationFrame(animateScrollSmooth);
+            
+            colors[i*3] = rCol;
+            colors[i*3+1] = gCol;
+            colors[i*3+2] = bCol;
         }
-        animateScrollSmooth();
         
-        scrollArea.addEventListener('wheel', (e) => {
-            targetScroll = scrollArea.scrollTop + e.deltaY;
-            targetScroll = Math.min(scrollArea.scrollHeight - scrollArea.clientHeight, Math.max(0, targetScroll));
-            currentScroll = targetScroll;
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const particleMaterial = new THREE.PointsMaterial({ size: 0.12, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, opacity: 0.95 });
+        const particleSystem = new THREE.Points(geometry, particleMaterial);
+        scene.add(particleSystem);
+        
+        // Add a central glowing core (subtle)
+        const coreGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(0.85, 32, 32),
+            new THREE.MeshStandardMaterial({ color: 0xff66aa, emissive: 0x441133, emissiveIntensity: 1.2, roughness: 0.3 })
+        );
+        scene.add(coreGlow);
+        
+        // Ambient + point light to enhance depth
+        const ambientLight = new THREE.AmbientLight(0x111122);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xff88aa, 0.8, 40);
+        pointLight.position.set(3, 5, 4);
+        scene.add(pointLight);
+        const backLight = new THREE.PointLight(0x2266ff, 0.5);
+        backLight.position.set(-4, 2, -6);
+        scene.add(backLight);
+        
+        // optional: faint wireframe rings (cosmetic)
+        const ringGeo = new THREE.TorusGeometry(7.2, 0.05, 128, 300);
+        const ringMat = new THREE.MeshStandardMaterial({ color: 0x66aaff, emissive: 0x224466, transparent: true, opacity: 0.2 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+        
+        // --------------------------------------------------------------
+        // 3. LERP SMOOTHING & DECOUPLED PHYSICS (rotational drift & breathing)
+        //    Visual motion independent from hand tracking logic.
+        // --------------------------------------------------------------
+        let timeAcc = 0;
+        let targetRotationY = 0;
+        let currentRotationY = 0;
+        let targetRotationX = 0;
+        let currentRotationX = 0;
+        let baseBreathing = 0;
+        
+        // Hand tracking state (Right Hand Exclusive)
+        let handPresent = false;
+        let handX = 0;      // normalized -1..1
+        let handY = 0;
+        let handPinch = 0;   // 0..1 strength
+        
+        // smoothing for hand-driven parameters (lerp)
+        let smoothHandX = 0;
+        let smoothHandY = 0;
+        let smoothPinch = 0;
+        
+        // physics-like independent rotation: gentle auto-spin when no hand, but hand overrides target
+        let autoSpin = 0.002;
+        
+        // additional floating particles secondary (cosmic dust) - small layer for richness
+        const dustCount = 8000;
+        const dustGeo = new THREE.BufferGeometry();
+        const dustPositions = new Float32Array(dustCount * 3);
+        for (let i = 0; i < dustCount; i++) {
+            dustPositions[i*3] = (Math.random() - 0.5) * 35;
+            dustPositions[i*3+1] = (Math.random() - 0.5) * 20;
+            dustPositions[i*3+2] = (Math.random() - 0.5) * 30;
+        }
+        dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+        const dustMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.05, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending });
+        const dustLayer = new THREE.Points(dustGeo, dustMat);
+        scene.add(dustLayer);
+        
+        // --------------------------------------------------------------
+        // 4. RIGHT HAND EXCLUSIVE TRACKING - MediaPipe onResults modified
+        //    Strictly process only right hand landmarks.
+        // --------------------------------------------------------------
+        const videoElement = document.createElement('video');
+        videoElement.style.display = 'none';
+        document.body.appendChild(videoElement);
+        
+        const hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
         });
         
-        // hand tracking variables
-        let handActive = false;
-        let lastHandY = null;
-        let isFistFlag = false;
+        hands.setOptions({
+            maxNumHands: 1,          // only need one hand, but we enforce right hand logic
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
         
-        // pinch zoom variables
-        let lastPinchDistance = null;
-        let isPinching = false;
-        
-        function getPinchDistance(landmarks) {
+        // Helper: get pinch strength between thumb tip and index tip
+        function getPinchStrength(landmarks) {
             const thumbTip = landmarks[4];
             const indexTip = landmarks[8];
             const dx = thumbTip.x - indexTip.x;
             const dy = thumbTip.y - indexTip.y;
-            return Math.sqrt(dx*dx + dy*dy);
+            const dz = thumbTip.z - indexTip.z;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            // distance range typical: 0.02 to 0.2 -> map to 0..1 inverse (closer = stronger)
+            let strength = 1 - Math.min(1, Math.max(0, (dist - 0.02) / 0.18));
+            return strength;
         }
         
-        function isFistGesture(landmarks) {
-            let folded = 0;
-            if(landmarks[8].y > landmarks[6].y) folded++;
-            if(landmarks[12].y > landmarks[10].y) folded++;
-            if(landmarks[16].y > landmarks[14].y) folded++;
-            if(landmarks[20].y > landmarks[18].y) folded++;
-            const thumbSpread = Math.abs(landmarks[4].x - landmarks[2].x) > 0.07;
-            return (folded >= 3 && !thumbSpread);
-        }
-        
-        function isOpenPalm(landmarks) {
-            // cek jari terbuka semua
-            const indexOpen = landmarks[8].y < landmarks[6].y;
-            const middleOpen = landmarks[12].y < landmarks[10].y;
-            const ringOpen = landmarks[16].y < landmarks[14].y;
-            const pinkyOpen = landmarks[20].y < landmarks[18].y;
-            const thumbOpen = Math.abs(landmarks[4].x - landmarks[2].x) > 0.05;
-            return (indexOpen && middleOpen && ringOpen && pinkyOpen && thumbOpen);
-        }
-        
-        let cameraInstance = null;
-        let handsInstance = null;
-        
-        function onHandResults(results) {
-            const gestureStatusDiv = document.getElementById('gestureStatusCam');
-            if(!gestureStatusDiv) return;
-            
-            if(results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                if(!handActive) {
-                    handActive = true;
-                    addLog("tangan terdeteksi");
-                }
-                const lm = results.multiHandLandmarks[0];
-                const fist = isFistGesture(lm);
-                const openPalm = isOpenPalm(lm);
-                const pinchDistance = getPinchDistance(lm);
-                
-                // PRIORITAS: FIST (kepalan) -> reset
-                if(fist) {
-                    if(!isFistFlag) {
-                        isFistFlag = true;
-                        addLog("✊ kepalan -> reset scroll & zoom");
-                        // reset scroll
-                        targetScroll = 0;
-                        currentScroll = 0;
-                        scrollArea.scrollTop = 0;
-                        // reset zoom
-                        currentFontSize = 1.0;
-                        applyZoom();
-                        incGesture();
-                        gestureStatusDiv.innerText = "✊ RESET!";
-                        showBubble("✊ RESET SEMUA", false);
-                    } else {
-                        gestureStatusDiv.innerText = "✊ kepalan (tahan)";
-                    }
-                    // reset pinch state
-                    lastPinchDistance = null;
-                    isPinching = false;
-                    return;
-                } else {
-                    isFistFlag = false;
-                }
-                
-                // PRIORITAS KEDUA: PINCH (jepit jari) -> zoom teks
-                // deteksi pinch: jarak antara thumb dan index tip
-                if(lastPinchDistance !== null && openPalm === false) {
-                    const delta = pinchDistance - lastPinchDistance;
-                    if(Math.abs(delta) > 0.008) {
-                        const oldZoom = currentFontSize;
-                        let newZoom = currentFontSize + (delta * 1.5);
-                        newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, newZoom));
-                        
-                        if(newZoom !== oldZoom) {
-                            currentFontSize = newZoom;
-                            applyZoom();
-                            const isZoomIn = newZoom > oldZoom;
-                            const percent = Math.round(newZoom * 100);
-                            showBubble(isZoomIn ? `🔍➕ zoom ${percent}%` : `🔍➖ zoom ${percent}%`, true);
-                            gestureStatusDiv.innerText = `🤏 pinch ${isZoomIn ? 'in' : 'out'} ${percent}%`;
-                            incGesture();
-                            addLog(`pinch ${isZoomIn ? 'in' : 'out'} -> ${percent}%`);
-                        } else {
-                            gestureStatusDiv.innerText = `🤏 pinch zoom: ${Math.round(currentFontSize*100)}%`;
-                        }
-                        isPinching = true;
-                    } else {
-                        if(isPinching) {
-                            isPinching = false;
-                            gestureStatusDiv.innerText = "telapak - gerakkan scroll";
-                        }
+        // RIGHT HAND EXCLUSIVE: callback filters only right hand
+        hands.onResults((results) => {
+            // CRITICAL: Process ONLY the Right Hand
+            let rightHandLandmarks = null;
+            if (results.multiHandLandmarks && results.multiHandedness) {
+                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                    const handedness = results.multiHandedness[i].label;
+                    if (handedness === 'Right') {
+                        rightHandLandmarks = results.multiHandLandmarks[i];
+                        break;  // take first right hand only
                     }
                 }
-                lastPinchDistance = pinchDistance;
-                
-                // PRIORITAS KETIGA: SCROLL (gerakan telapak)
-                // hanya scroll jika bukan sedang pinch dan bukan fist
-                if(!isPinching && !fist) {
-                    const palmY = lm[0].y;
-                    if(lastHandY !== null) {
-                        let delta = palmY - lastHandY;
-                        let speed = delta * 550;
-                        if(Math.abs(speed) > 1.5) {
-                            let newTop = scrollArea.scrollTop + speed;
-                            newTop = Math.min(scrollArea.scrollHeight - scrollArea.clientHeight, Math.max(0, newTop));
-                            targetScroll = newTop;
-                            currentScroll = newTop;
-                            scrollArea.scrollTop = newTop;
-                            const dir = speed > 0 ? 'down' : 'up';
-                            gestureStatusDiv.innerText = `📜 scroll ${dir}`;
-                            if(Math.abs(speed) > 12) incGesture();
-                        } else {
-                            if(openPalm) gestureStatusDiv.innerText = "🖐️ telapak - gerakkan";
-                            else gestureStatusDiv.innerText = "✋ arahkan telapak";
-                        }
-                    }
-                    lastHandY = palmY;
-                } else if(!fist) {
-                    // sedang pinch, jangan update lastHandY
-                    // biar scroll tidak ikut bergerak
-                }
-                
-            } else {
-                if(handActive) {
-                    handActive = false;
-                    addLog("tangan hilang");
-                    if(gestureStatusDiv) gestureStatusDiv.innerText = "tidak terdeteksi";
-                }
-                lastHandY = null;
-                isFistFlag = false;
-                lastPinchDistance = null;
-                isPinching = false;
             }
-        }
-        
-        function initCamera() {
-            const camOverlay = document.createElement('div');
-            camOverlay.className = 'cam-panel';
-            camOverlay.id = 'camPanel';
-            camOverlay.innerHTML = `
-                <video id="handVideoFeed" autoplay muted playsinline></video>
-                <div class="cam-info">
-                    <div id="gestureStatusCam">🖐️ arahkan tangan</div>
-                    <div style="font-size:0.6rem; margin-top:4px;">✋ scroll | 🤏 zoom | ✊ reset</div>
-                </div>
-                <button id="closeCamBtn">tutup</button>
-            `;
-            document.body.appendChild(camOverlay);
             
-            const videoFeed = document.getElementById('handVideoFeed');
-            
-            handsInstance = new Hands({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-            });
-            handsInstance.setOptions({
-                maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-            handsInstance.onResults(onHandResults);
-            
-            const cameraObj = new Camera(videoFeed, {
-                onFrame: async () => {
-                    await handsInstance.send({image: videoFeed});
-                },
-                width: 300,
-                height: 200
-            });
-            cameraObj.start();
-            
-            document.getElementById('closeCamBtn').addEventListener('click', () => {
-                if(cameraObj) cameraObj.stop();
-                camOverlay.remove();
-                addLog("kamera dimatikan, scroll manual tetap jalan");
-                if(hintBox) hintBox.style.display = 'block';
-            });
-            
-            if(hintBox) hintBox.style.display = 'none';
-            addLog("kamera aktif, semua gesture siap: ✋ scroll | 🤏 zoom | ✊ reset");
-        }
-        
-        // efek klik random
-        document.body.addEventListener('click', (e) => {
-            if(mainApp.style.display === 'block') {
-                const ripple = document.createElement('div');
-                ripple.innerText = '⚡';
-                ripple.style.position = 'fixed';
-                ripple.style.left = (e.clientX - 10) + 'px';
-                ripple.style.top = (e.clientY - 10) + 'px';
-                ripple.style.fontSize = '16px';
-                ripple.style.pointerEvents = 'none';
-                ripple.style.zIndex = '999';
-                ripple.style.opacity = '0.6';
-                document.body.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 400);
+            if (rightHandLandmarks) {
+                handPresent = true;
+                // Get wrist (landmark 0) for position mapping to X/Y (normalized screen space -> -1..1 range)
+                const wrist = rightHandLandmarks[0];
+                // Map x: 0..1 -> -1..1, y: 0..1 -> -1..1 but inverted Y for natural mapping
+                const rawX = (wrist.x * 2) - 1;
+                const rawY = 1 - (wrist.y * 2);
+                // Clamp and update
+                handX = Math.min(0.95, Math.max(-0.95, rawX));
+                handY = Math.min(0.95, Math.max(-0.95, rawY));
+                // pinch strength from right hand
+                handPinch = getPinchStrength(rightHandLandmarks);
+                // optional: update status indicator
+                document.getElementById('status').style.color = '#aaffaa';
+                document.getElementById('status').innerHTML = '🟢 RIGHT HAND ACTIVE | PINCH: ' + handPinch.toFixed(2);
+            } else {
+                handPresent = false;
+                // smoothly fade out hand influence
+                handX = 0;
+                handY = 0;
+                handPinch = 0;
+                document.getElementById('status').style.color = '#ff8888';
+                document.getElementById('status').innerHTML = '⚫ RIGHT HAND NOT DETECTED';
             }
         });
         
-        addLog("siap. semua gesture aktif: telapak(scroll) | jepit(zoom) | kepalan(reset)");
-        applyZoom();
-    })();
-</script>
+        // Initialize camera
+        const cameraUtils = window.CameraUtils;
+        const cameraObj = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
+            },
+            width: 640,
+            height: 480
+        });
+        cameraObj.start();
+        
+        // --------------------------------------------------------------
+        // 5. ANIMATION LOOP: LERP SMOOTHING, DECOUPLED VISUAL EFFECTS
+        //    Hand input modifies target rotation & field intensity (pinch)
+        //    No physics coupling: particles rotate globally, independent drift.
+        // --------------------------------------------------------------
+        let clock = new THREE.Clock();
+        
+        function animate() {
+            const delta = Math.min(clock.getDelta(), 0.033);
+            const elapsedTime = performance.now() * 0.001;
+            
+            // LERP smoothing for hand-driven parameters (smooth transitions)
+            const lerpFactor = 0.08;
+            smoothHandX += (handX - smoothHandX) * lerpFactor;
+            smoothHandY += (handY - smoothHandY) * lerpFactor;
+            smoothPinch += (handPinch - smoothPinch) * lerpFactor;
+            
+            // 1. DECOUPLED VISUAL ROTATION: target rotation based on hand position + subtle auto-rotation
+            //    hand influence: maps hand X to Y rotation offset, hand Y to X rotation offset
+            let targetRotY = 0;
+            let targetRotX = 0;
+            if (handPresent) {
+                // Map smooth hand coordinates to rotation angles: -1.2 .. 1.2 rad
+                targetRotY = smoothHandX * 1.5;
+                targetRotX = smoothHandY * 0.9;
+                // auto-spin contribution reduced when hand is active to prioritize control
+                autoSpin = 0.0008;
+            } else {
+                // gentle cosmic drift when no hand
+                targetRotY = Math.sin(elapsedTime * 0.12) * 0.6;
+                targetRotX = Math.sin(elapsedTime * 0.2) * 0.3;
+                autoSpin = 0.0022;
+            }
+            
+            // Add continuous auto-spin independent of hand (decoupled physics-like)
+            targetRotY += autoSpin * (1 - Math.abs(smoothHandX) * 0.5);
+            
+            // LERP rotation for cinematic smoothness
+            currentRotationY += (targetRotY - currentRotationY) * 0.045;
+            currentRotationX += (targetRotX - currentRotationX) * 0.045;
+            
+            // Apply rotation to the main particle system, dust, and ring (visual core)
+            particleSystem.rotation.y = currentRotationY;
+            particleSystem.rotation.x = currentRotationX;
+            dustLayer.rotation.y = currentRotationY * 0.7;
+            dustLayer.rotation.x = currentRotationX * 0.5;
+            ring.rotation.z = currentRotationY * 0.4;
+            ring.rotation.x = Math.PI / 2 + currentRotationX * 0.2;
+            
+            // 2. BREATHING & PULSE EFFECT (decoupled physics, driven by time & pinch)
+            //    Global scale / intensity based on smooth pinch + sine wave
+            const breathSine = Math.sin(elapsedTime * 0.9) * 0.03;
+            let scaleFactor = 1 + breathSine * 0.5;
+            // pinch influence: increase scale/warp intensity (visual expansion)
+            const pinchInfluence = smoothPinch * 0.22;
+            scaleFactor += pinchInfluence;
+            particleSystem.scale.setScalar(1 + breathSine * 0.08 + pinchInfluence * 0.1);
+            dustLayer.scale.setScalar(1 + breathSine * 0.05);
+            
+            // 3. COLOR/BLOOM INTENSITY response to pinch (makes universe "warp")
+            const bloomStrength = 0.65 + smoothPinch * 0.6;
+            bloomPass.strength = Math.min(1.2, bloomStrength);
+            
+            // 4. Central core pulse based on pinch and time
+            const coreIntensity = 0.9 + Math.sin(elapsedTime * 3) * 0.2 + smoothPinch * 0.8;
+            coreGlow.material.emissiveIntensity = coreIntensity;
+            
+            // 5. Point light movement subtle in response to hand (visual flair)
+            if (handPresent) {
+                pointLight.position.x = 3 + smoothHandX * 1.8;
+                pointLight.position.y = 5 + smoothHandY * 1.2;
+                pointLight.intensity = 0.7 + smoothPinch * 0.6;
+            } else {
+                pointLight.position.x = 3 + Math.sin(elapsedTime * 0.5) * 1;
+                pointLight.position.y = 5 + Math.cos(elapsedTime * 0.7) * 0.8;
+                pointLight.intensity = 0.7;
+            }
+            
+            // camera subtle orbit parallax (gentle cinematic movement)
+            const camOffsetX = smoothHandX * 1.2;
+            const camOffsetY = smoothHandY * 0.6;
+            const targetCamX = 12 + camOffsetX;
+            const targetCamY = 6 + camOffsetY;
+            camera.position.x += (targetCamX - camera.position.x) * 0.04;
+            camera.position.y += (targetCamY - camera.position.y) * 0.04;
+            camera.lookAt(0, 0, 0);
+            
+            // render via effect composer
+            effectComposer.render();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // start animation
+        animate();
+        
+        // handle window resize
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            effectComposer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // small console confirmation
+        console.log('3D Particle Universe | Right Hand Exclusive Tracking Active');
+        
+        // optional: tiny helper to keep mediapipe visible log
+        setTimeout(() => {
+            if (!handPresent) console.log('Waiting for right hand... show your right hand to the camera');
+        }, 1500);
+    </script>
 </body>
 </html>
