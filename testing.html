@@ -1,960 +1,135 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>🖐️ Hand Tracking Test Suite</title>
+    <title>High-Perf 3D Particle Visualizer - Right Hand Exclusive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        /* INTRO SCREEN */
-        .intro-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(145deg, #0a0a1a 0%, #1a1a2e 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 1s ease, visibility 1s ease;
-            flex-direction: column;
-            cursor: pointer;
-        }
-
-        .intro-screen.hide {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .intro-content {
-            text-align: center;
-            padding: 20px;
-            animation: fadeInUp 1s ease;
-            pointer-events: none;
-        }
-
-        .logo-icon {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            animation: pulseGlow 1.8s ease-in-out infinite;
-        }
-
-        .waiting-text {
-            font-family: 'Poppins', system-ui, sans-serif;
-            font-size: 1rem;
-            color: #6c63ff;
-            margin-top: 30px;
-            letter-spacing: 1px;
-            animation: fadeInOut 2s ease-in-out infinite;
-            font-weight: 500;
-        }
-
-        .gift-box {
-            display: none;
-            margin-top: 30px;
-            animation: fadeInUp 0.8s ease;
-        }
-
-        .special-gift-text {
-            font-family: 'Poppins', system-ui, sans-serif;
-            font-size: 2rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            background: linear-gradient(135deg, #6c63ff, #3d3b8c);
-            background-clip: text;
-            -webkit-background-clip: text;
-            color: transparent;
-            margin-bottom: 30px;
-        }
-
-        .open-gift-btn {
-            background: linear-gradient(135deg, #6c63ff, #3d3b8c);
-            border: none;
-            padding: 16px 42px;
-            border-radius: 60px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
-            pointer-events: auto;
-        }
-
-        .open-gift-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .click-effect {
-            position: fixed;
-            pointer-events: none;
-            z-index: 2000;
-            font-size: 1.5rem;
-            animation: floatEffect 1s ease-out forwards;
-        }
-
-        @keyframes floatEffect {
-            0% { transform: translateY(0) scale(0.5); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-        }
-
-        .floating-particles {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            bottom: -50px;
-            width: 15px;
-            height: 15px;
-            animation: floatUp 6s linear infinite;
-            opacity: 0.5;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0.5; }
-            100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
-        }
-
-        @keyframes pulseGlow {
-            0% { filter: drop-shadow(0 0 5px #6c63ff); }
-            50% { filter: drop-shadow(0 0 25px #6c63ff); }
-            100% { filter: drop-shadow(0 0 5px #6c63ff); }
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeInOut {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            opacity: 0;
-            transition: opacity 0.8s ease;
-            position: relative;
-            z-index: 10;
-        }
-
-        .main-content.show {
-            opacity: 1;
-        }
-
-        body {
-            font-family: 'Poppins', system-ui, sans-serif;
-            background: linear-gradient(145deg, #0a0a1a 0%, #1a1a2e 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-
-        /* Camera overlay */
-        .camera-overlay {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 12px;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: white;
-            font-size: 12px;
-            border: 1px solid rgba(108, 99, 255, 0.3);
-        }
-
-        .camera-overlay video {
-            width: 80px;
-            height: 60px;
-            border-radius: 12px;
-            object-fit: cover;
-            transform: scaleX(-1);
-            background: #000;
-        }
-
-        .camera-overlay .info {
-            flex: 1;
-        }
-
-        .camera-overlay .gesture-status {
-            font-weight: bold;
-            color: #6c63ff;
-            font-size: 11px;
-        }
-
-        .camera-overlay .scroll-info {
-            font-size: 10px;
-            color: #aaa;
-            margin-top: 4px;
-        }
-
-        .camera-overlay .close-cam {
-            background: #ff4757;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 20px;
-            color: white;
-            cursor: pointer;
-            font-size: 10px;
-        }
-
-        .gesture-hint {
-            position: fixed;
-            bottom: 100px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            padding: 12px 18px;
-            border-radius: 30px;
-            color: white;
-            font-size: 11px;
-            z-index: 100;
-            pointer-events: none;
-            font-family: monospace;
-            text-align: center;
-            max-width: 220px;
-            border: 1px solid #6c63ff;
-        }
-
-        .gesture-hint .highlight {
-            color: #6c63ff;
-            font-weight: bold;
-        }
-
-        /* MAIN CARD */
-        .test-card {
-            max-width: 550px;
-            width: 100%;
-            background: rgba(30, 30, 50, 0.95);
-            border-radius: 48px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(108, 99, 255, 0.2);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, #6c63ff, #3d3b8c);
-            padding: 30px 24px;
-            text-align: center;
-        }
-
-        .card-header h1 {
-            color: white;
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-        }
-
-        .card-header .subtitle {
-            color: #c0c0ff;
-            font-size: 0.8rem;
-            margin-top: 8px;
-        }
-
-        .card-header .icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        /* SCROLLABLE CONTENT */
-        .scroll-container {
-            position: relative;
-            height: 500px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            background: #1a1a2e;
-        }
-
-        .scroll-container::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .scroll-container::-webkit-scrollbar-track {
-            background: #2a2a4a;
-            border-radius: 10px;
-        }
-
-        .scroll-container::-webkit-scrollbar-thumb {
-            background: #6c63ff;
-            border-radius: 10px;
-        }
-
-        .test-content {
-            padding: 32px 28px;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #6c63ff;
-            margin-bottom: 20px;
-            border-left: 4px solid #6c63ff;
-            padding-left: 15px;
-        }
-
-        .test-item {
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(108, 99, 255, 0.2);
-        }
-
-        .test-item h3 {
-            color: #fff;
-            font-size: 1rem;
-            margin-bottom: 12px;
-        }
-
-        .test-item p {
-            color: #aaa;
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-
-        .code-block {
-            background: #0a0a1a;
-            padding: 15px;
-            border-radius: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: #6c63ff;
-            margin-top: 12px;
-            overflow-x: auto;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .status-success {
-            background: #00b89420;
-            color: #00b894;
-            border: 1px solid #00b894;
-        }
-
-        .status-testing {
-            background: #6c63ff20;
-            color: #6c63ff;
-            border: 1px solid #6c63ff;
-        }
-
-        .scroll-indicator {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(108, 99, 255, 0.7);
-            border-radius: 20px;
-            padding: 8px 6px;
-            color: white;
-            font-size: 10px;
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            pointer-events: none;
-            z-index: 20;
-            backdrop-filter: blur(4px);
-        }
-
-        /* Music player mini */
-        .music-mini {
-            background: #1a1a2e;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-top: 1px solid rgba(108, 99, 255, 0.2);
-        }
-
-        .music-mini .music-icon {
-            font-size: 1.2rem;
-        }
-
-        .music-mini .music-title {
-            flex: 1;
-            font-size: 0.75rem;
-            color: #aaa;
-            font-weight: 500;
-        }
-
-        .music-mini button {
-            background: #6c63ff;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: white;
-            font-size: 0.8rem;
-        }
-
-        .music-mini .switch-btn {
-            background: #3d3b8c;
-            width: auto;
-            padding: 0 12px;
-            font-size: 0.7rem;
-        }
-
-        footer {
-            font-size: 0.65rem;
-            text-align: center;
-            padding: 14px;
-            color: #666;
-            background: #141428;
-            border-top: 1px solid rgba(108, 99, 255, 0.1);
-        }
-
-        .counter {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #6c63ff;
-            text-align: center;
-            margin: 20px 0;
-        }
+        body { margin: 0; overflow: hidden; background: #000; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 10px; left: 10px; color: #0f0; font-family: monospace; pointer-events: none; }
     </style>
 </head>
 <body>
+    <div id="ui">SYSTEM STATUS: ACTIVE<br>TRACKING: RIGHT HAND ONLY</div>
+    <canvas id="canvas"></canvas>
 
-<!-- INTRO SCREEN -->
-<div class="intro-screen" id="introScreen">
-    <div class="floating-particles" id="particlesContainer"></div>
-    <div class="intro-content">
-        <div class="logo-icon">🖐️</div>
-        <div class="waiting-text" id="waitingText">✨ klik di mana saja untuk memulai ✨</div>
-        <div class="gift-box" id="giftBox">
-            <div class="special-gift-text">HAND TRACKING TEST SUITE</div>
-            <button class="open-gift-btn" id="openGiftBtn">🎯 Mulai Test</button>
-        </div>
-    </div>
-</div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
 
-<!-- MAIN CONTENT -->
-<div class="main-content" id="mainContent">
-    <div class="test-card">
-        <div class="card-header">
-            <div class="icon">🖐️⚡</div>
-            <h1>Gesture Control Test</h1>
-            <div class="subtitle">Hand Tracking v2.0 | MediaPipe Integration</div>
-        </div>
+        // --- PARTICLE CONFIG (Solar System / Universe Logic) ---
+        const PARTICLE_COUNT = 1500;
+        const particles = [];
+        const mouse = { x: 0, y: 0, active: false };
+        const lerpTarget = { x: 0, y: 0 };
+        const LERP_FACTOR = 0.15; // Smooth movement factor
 
-        <div class="scroll-container" id="scrollContainer">
-            <div class="scroll-indicator" id="scrollIndicator">👇 Scroll</div>
-            <div class="test-content">
-                
-                <div class="section-title">📋 Test Specifications</div>
-                
-                <div class="test-item">
-                    <h3>🎯 Gesture Recognition Test</h3>
-                    <p>Mendeteksi gerakan tangan secara real-time menggunakan MediaPipe Hands. Sistem dapat mengenali berbagai pose tangan termasuk telapak terbuka, kepalan, dan gestur jepit.</p>
-                    <div class="code-block">
-                        > Hand landmarks: 21 key points<br>
-                        > FPS: ~30-60<br>
-                        > Accuracy: 95%+
-                    </div>
-                    <span class="status-badge status-testing">🟢 ACTIVE</span>
-                </div>
-
-                <div class="test-item">
-                    <h3>📜 Vertical Scroll Test</h3>
-                    <p>Gerakkan tangan ke ATAS atau BAWAH untuk menguji fungsi scroll. Sistem akan merespon dengan kecepatan yang proporsional dengan gerakan tangan.</p>
-                    <div class="code-block">
-                        > Scroll sensitivity: adjustable<br>
-                        > Smooth animation: enabled<br>
-                        > Fallback: mouse/touch supported
-                    </div>
-                    <span class="status-badge status-success">✅ CALIBRATED</span>
-                </div>
-
-                <div class="test-item">
-                    <h3>✊ Fist Detection Test</h3>
-                    <p>Kepalan tangan akan mereset scroll ke posisi paling atas. Ini menguji kemampuan deteksi gestur kompleks dari sistem.</p>
-                    <div class="code-block">
-                        > Folded fingers threshold: 3<br>
-                        > Thumb position: analyzed<br>
-                        > Response time: &lt;100ms
-                    </div>
-                    <span class="status-badge status-testing">⚡ READY</span>
-                </div>
-
-                <div class="section-title">📊 System Status</div>
-                
-                <div class="test-item">
-                    <h3>🖥️ Hardware Detection</h3>
-                    <p id="cameraStatus">📷 Camera: <span style="color:#6c63ff">Waiting for activation...</span></p>
-                    <p id="handStatus">🖐️ Hand: <span style="color:#aaa">Not detected</span></p>
-                    <div class="counter" id="gestureCounter">0</div>
-                    <p style="text-align:center; font-size:0.7rem">gestures detected</p>
-                </div>
-
-                <div class="test-item">
-                    <h3>📝 Test Log</h3>
-                    <div class="code-block" id="testLog" style="height:120px; overflow-y:auto">
-                        > System initialized<br>
-                        > Waiting for hand tracking...
-                    </div>
-                </div>
-
-                <div class="section-title">⚙️ Controls & Commands</div>
-                
-                <div class="test-item">
-                    <h3>🕹️ Available Gestures</h3>
-                    <p>✋ <strong>Open palm</strong> - Move up/down to scroll<br>
-                    ✊ <strong>Fist</strong> - Reset scroll to top<br>
-                    🤏 <strong>Pinch gesture</strong> - (reserved for future)<br>
-                    👆 <strong>Pointing</strong> - (coming soon)</p>
-                </div>
-
-                <div class="test-item">
-                    <h3>🔧 Technical Notes</h3>
-                    <p>- Camera permission required for hand tracking<br>
-                    - Works best in well-lit environments<br>
-                    - Background music can be toggled on/off<br>
-                    - Close camera overlay anytime to disable tracking</p>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="music-mini">
-            <div class="music-icon">🎵</div>
-            <div class="music-title" id="songTitle">Background Test Audio</div>
-            <button id="musicToggleBtn">▶️</button>
-            <button class="switch-btn" id="switchSongBtn">🔄 Skip</button>
-        </div>
-        <footer>🖐️ hand tracking test suite | gesture recognition v1.0</footer>
-    </div>
-</div>
-
-<div class="gesture-hint" id="gestureHint">
-    🖐️ <span class="highlight">Tunjukkan telapak tangan</span> ke kamera<br>
-    👆 <span class="highlight">Angkat/ Turunkan tangan</span> = Scroll test<br>
-    ✊ <span class="highlight">Kepal tangan</span> = Reset posisi<br>
-    🎯 <span class="highlight">Technical Demo Only</span>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
-<script>
-    (function() {
-        // Counter for gestures
-        let gestureCount = 0;
-        let lastLogTime = 0;
-        
-        function addToLog(message) {
-            const logEl = document.getElementById('testLog');
-            if (logEl) {
-                const time = new Date().toLocaleTimeString();
-                logEl.innerHTML += `<br>> [${time}] ${message}`;
-                logEl.scrollTop = logEl.scrollHeight;
-                // Keep last 20 lines
-                const lines = logEl.innerHTML.split('<br>');
-                if (lines.length > 25) {
-                    logEl.innerHTML = lines.slice(-20).join('<br>');
-                }
+        function init() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            particles.length = 0;
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    z: Math.random() * 1000,
+                    ox: Math.random() * width,
+                    oy: Math.random() * height,
+                    oz: Math.random() * 1000,
+                    vx: 0, vy: 0, vz: 0,
+                    color: `hsl(${Math.random() * 50 + 200}, 80%, 60%)`
+                });
             }
         }
-        
-        function updateGestureCounter() {
-            const counterEl = document.getElementById('gestureCounter');
-            if (counterEl) {
-                counterEl.textContent = gestureCount;
+
+        // --- PHYSICS & RENDERING (The "Perfect" Logic - Unchanged) ---
+        function update() {
+            // Decoupled Lerp Smoothing
+            mouse.x += (lerpTarget.x - mouse.x) * LERP_FACTOR;
+            mouse.y += (lerpTarget.y - mouse.y) * LERP_FACTOR;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, width, height);
+
+            for (let p of particles) {
+                const dx = mouse.x - p.x;
+                const dy = mouse.y - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const force = mouse.active ? (150 / (dist + 1)) : 0;
+
+                // Physics Influence
+                p.vx += (dx / dist) * force + (p.ox - p.x) * 0.01;
+                p.vy += (dy / dist) * force + (p.oy - p.y) * 0.01;
+                
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.92;
+                p.vy *= 0.92;
+
+                // 3D Projection
+                const scale = 600 / (600 + p.z);
+                const rx = (p.x - width / 2) * scale + width / 2;
+                const ry = (p.y - height / 2) * scale + height / 2;
+
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(rx, ry, scale * 2, 0, Math.PI * 2);
+                ctx.fill();
             }
-        }
-        
-        function incrementCounter() {
-            gestureCount++;
-            updateGestureCounter();
-        }
-        
-        function createClickEffect(x, y) {
-            const effect = document.createElement('div');
-            effect.innerHTML = '⚡';
-            effect.className = 'click-effect';
-            effect.style.left = (x - 15) + 'px';
-            effect.style.top = (y - 15) + 'px';
-            effect.style.position = 'fixed';
-            effect.style.fontSize = '1.5rem';
-            effect.style.pointerEvents = 'none';
-            effect.style.zIndex = '9999';
-            document.body.appendChild(effect);
-            setTimeout(() => effect.remove(), 1000);
+            requestAnimationFrame(update);
         }
 
-        // ========== AUDIO ==========
-        const INTRO_SONG_URL = "https://h.top4top.io/m_3756oaons1.mp3";
-        const LAGU_LIST = [
-            { url: "https://l.top4top.io/m_3756cgskf1.mp3", name: "🎵 Test Track 1" },
-            { url: "https://d.uguu.se/rAurKylF.mp3", name: "🎵 Test Track 2" },
-            { url: "https://e.top4top.io/m_3756l69fo1.mp3", name: "🎵 Test Track 3" }
-        ];
-        
-        let currentSongIndex = 0;
-        let introFinished = false;
-        let audioStarted = false;
-        
-        // ========== INTRO ==========
-        const introScreen = document.getElementById('introScreen');
-        const mainContent = document.getElementById('mainContent');
-        const openBtn = document.getElementById('openGiftBtn');
-        const giftBox = document.getElementById('giftBox');
-        const waitingText = document.getElementById('waitingText');
-        
-        const introAudio = new Audio();
-        introAudio.src = INTRO_SONG_URL;
-        introAudio.volume = 0.3;
-        
-        introAudio.addEventListener('ended', () => {
-            if (!introFinished) {
-                introFinished = true;
-                waitingText.style.display = 'none';
-                giftBox.style.display = 'block';
-            }
+        // --- MEDIAPIPE LOGIC (Modified for Right Hand Exclusion) ---
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
-        
-        introAudio.addEventListener('error', () => {
-            setTimeout(() => {
-                if (!introFinished) {
-                    introFinished = true;
-                    waitingText.style.display = 'none';
-                    giftBox.style.display = 'block';
-                }
-            }, 2000);
+
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
         });
-        
-        function startIntroAudio(event) {
-            if (!audioStarted) {
-                audioStarted = true;
-                introAudio.play().catch(e => console.log("Play intro error:", e));
-                if (event && event.clientX) createClickEffect(event.clientX, event.clientY);
-            } else {
-                if (event && event.clientX) createClickEffect(event.clientX, event.clientY);
-            }
-        }
-        
-        introScreen.addEventListener('click', (e) => {
-            if (e.target === openBtn || openBtn.contains(e.target)) return;
-            startIntroAudio(e);
-        });
-        
-        setTimeout(() => {
-            if (!introFinished) {
-                introFinished = true;
-                waitingText.style.display = 'none';
-                giftBox.style.display = 'block';
-            }
-        }, 10000);
-        
-        openBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            introScreen.classList.add('hide');
-            mainContent.classList.add('show');
-            introAudio.pause();
-            if (mainAudio) mainAudio.play().catch(e => console.log("Auto-play need interaction"));
-            if (e.clientX) createClickEffect(e.clientX, e.clientY);
-            startCamera();
-            addToLog('System initialized - Camera starting');
-        });
-        
-        function createFloatingParticles() {
-            const container = document.getElementById('particlesContainer');
-            if (!container) return;
-            const colors = ['#6c63ff', '#3d3b8c', '#8c7ae6', '#9b59b6'];
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDuration = 4 + Math.random() * 8 + 's';
-                particle.style.animationDelay = Math.random() * 5 + 's';
-                particle.style.width = 8 + Math.random() * 16 + 'px';
-                particle.style.height = particle.style.width;
-                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.borderRadius = '50%';
-                container.appendChild(particle);
-            }
-        }
-        createFloatingParticles();
-        
-        // ========== AUDIO PLAYER ==========
-        const mainAudio = new Audio();
-        mainAudio.loop = true;
-        mainAudio.volume = 0.3;
-        
-        const musicToggleBtn = document.getElementById('musicToggleBtn');
-        const songTitleSpan = document.getElementById('songTitle');
-        const switchSongBtn = document.getElementById('switchSongBtn');
-        
-        let isPlayingMain = false;
-        
-        function loadSong(index) {
-            songTitleSpan.innerText = LAGU_LIST[index].name;
-            mainAudio.src = LAGU_LIST[index].url;
-            mainAudio.load();
-            mainAudio.addEventListener('canplay', () => {
-                if (isPlayingMain) mainAudio.play().catch(() => {});
-            }, { once: true });
-        }
-        
-        function updateMusicUI() {
-            if (isPlayingMain && !mainAudio.paused) {
-                musicToggleBtn.innerHTML = '⏸️';
-            } else {
-                musicToggleBtn.innerHTML = '▶️';
-            }
-        }
-        
-        function playMusic() {
-            mainAudio.play().then(() => { isPlayingMain = true; updateMusicUI(); }).catch(() => {});
-        }
-        
-        function pauseMusic() {
-            mainAudio.pause();
-            isPlayingMain = false;
-            updateMusicUI();
-        }
-        
-        musicToggleBtn.addEventListener('click', () => {
-            if (mainAudio.paused || !isPlayingMain) playMusic();
-            else pauseMusic();
-        });
-        
-        switchSongBtn.addEventListener('click', () => {
-            currentSongIndex = (currentSongIndex + 1) % LAGU_LIST.length;
-            const wasPlaying = isPlayingMain;
-            isPlayingMain = false;
-            loadSong(currentSongIndex);
-            if (wasPlaying) setTimeout(() => playMusic(), 100);
-            addToLog(`Switched to ${LAGU_LIST[currentSongIndex].name}`);
-        });
-        
-        loadSong(0);
-        
-        // ========== HAND TRACKING UNTUK SCROLL ==========
-        const scrollContainer = document.getElementById('scrollContainer');
-        const scrollIndicator = document.getElementById('scrollIndicator');
-        const handStatusEl = document.getElementById('handStatus');
-        const cameraStatusEl = document.getElementById('cameraStatus');
-        
-        let lastHandY = null;
-        let isHandDetected = false;
-        let targetScrollTop = 0;
-        let currentScrollTop = 0;
-        
-        function animateScroll() {
-            if (scrollContainer) {
-                const diff = targetScrollTop - currentScrollTop;
-                currentScrollTop += diff * 0.15;
-                scrollContainer.scrollTop = currentScrollTop;
-            }
-            requestAnimationFrame(animateScroll);
-        }
-        animateScroll();
-        
-        function showScrollInfo(direction) {
-            if (scrollIndicator) {
-                scrollIndicator.innerHTML = direction === 'up' ? '👆 Naik' : '👇 Turun';
-                scrollIndicator.style.opacity = '1';
-                setTimeout(() => {
-                    if (scrollIndicator) scrollIndicator.style.opacity = '0.7';
-                }, 500);
-            }
-        }
-        
-        let videoElement = null;
-        let camera = null;
-        let hands = null;
-        
-        function isFist(landmarks) {
-            let foldedFingers = 0;
-            if (landmarks[8].y > landmarks[6].y) foldedFingers++;
-            if (landmarks[12].y > landmarks[10].y) foldedFingers++;
-            if (landmarks[16].y > landmarks[14].y) foldedFingers++;
-            if (landmarks[20].y > landmarks[18].y) foldedFingers++;
-            const thumbOpen = Math.abs(landmarks[4].x - landmarks[2].x) > 0.08;
-            return foldedFingers >= 3 && !thumbOpen;
-        }
-        
-        function startCamera() {
-            const overlay = document.createElement('div');
-            overlay.className = 'camera-overlay';
-            overlay.id = 'cameraOverlay';
-            overlay.innerHTML = `
-                <video id="handVideo" autoplay muted playsinline></video>
-                <div class="info">
-                    <div>🖐️ Hand Tracking Active</div>
-                    <div class="gesture-status" id="gestureStatus">👋 Menunggu tangan...</div>
-                    <div class="scroll-info" id="scrollInfo">👆 Gerakkan tangan untuk scroll test</div>
-                </div>
-                <button class="close-cam" id="closeCamBtn">✖ Tutup</button>
-            `;
-            document.body.appendChild(overlay);
-            
-            videoElement = document.getElementById('handVideo');
-            
-            if (cameraStatusEl) cameraStatusEl.innerHTML = '📷 Camera: <span style="color:#00b894">ACTIVE</span>';
-            
-            hands = new Hands({
-                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-            });
-            
-            hands.setOptions({
-                maxNumHands: 1,
-                modelComplexity: 1,
-                minDetectionConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-            
-            hands.onResults(onHandResults);
-            
-            const cameraObj = new Camera(videoElement, {
-                onFrame: async () => await hands.send({image: videoElement}),
-                width: 320,
-                height: 240
-            });
-            cameraObj.start();
-            
-            document.getElementById('closeCamBtn').addEventListener('click', () => {
-                cameraObj.stop();
-                overlay.remove();
-                document.getElementById('gestureHint').style.display = 'block';
-                if (cameraStatusEl) cameraStatusEl.innerHTML = '📷 Camera: <span style="color:#ff4757">DISABLED</span>';
-                addToLog('Camera disabled by user');
-            });
-            
-            document.getElementById('gestureHint').style.display = 'none';
-            addToLog('Camera initialized - MediaPipe Hands loaded');
-        }
-        
-        function onHandResults(results) {
-            const gestureStatus = document.getElementById('gestureStatus');
-            const scrollInfo = document.getElementById('scrollInfo');
-            if (!gestureStatus) return;
-            
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                if (!isHandDetected) {
-                    isHandDetected = true;
-                    addToLog('Hand detected - Tracking started');
-                    if (handStatusEl) handStatusEl.innerHTML = '🖐️ Hand: <span style="color:#00b894">DETECTED</span>';
-                }
-                
-                const landmarks = results.multiHandLandmarks[0];
-                const fist = isFist(landmarks);
-                
-                if (fist) {
-                    gestureStatus.innerHTML = '✊ FIST DETECTED! Resetting scroll... ✊';
-                    scrollInfo.innerHTML = '⬆️ Scroll RESET to top ⬆️';
-                    targetScrollTop = 0;
-                    currentScrollTop = 0;
-                    scrollContainer.scrollTop = 0;
-                    showScrollInfo('up');
-                    incrementCounter();
-                    addToLog('Fist gesture detected - Scroll reset');
-                    return;
-                }
-                
-                const palmY = landmarks[0].y;
-                
-                if (lastHandY !== null) {
-                    const deltaY = palmY - lastHandY;
-                    const scrollSpeed = deltaY * 600;
-                    
-                    if (Math.abs(scrollSpeed) > 1) {
-                        const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
-                        let newScroll = scrollContainer.scrollTop + scrollSpeed;
-                        newScroll = Math.min(maxScroll, Math.max(0, newScroll));
-                        targetScrollTop = newScroll;
-                        currentScrollTop = newScroll;
-                        scrollContainer.scrollTop = newScroll;
-                        
-                        const direction = scrollSpeed > 0 ? 'down' : 'up';
-                        const speedPercent = Math.min(100, Math.abs(scrollSpeed) / 8);
-                        gestureStatus.innerHTML = `🖐️ SCROLL ${direction === 'up' ? '⬆️' : '⬇️'} ${Math.round(speedPercent)}%`;
-                        scrollInfo.innerHTML = `${direction === 'up' ? '👆 Scrolling UP' : '👇 Scrolling DOWN'}`;
-                        showScrollInfo(direction);
-                        
-                        if (Math.abs(scrollSpeed) > 20) {
-                            incrementCounter();
-                        }
-                    } else {
-                        gestureStatus.innerHTML = '🖐️ Hand detected - Move up/down to scroll';
-                        scrollInfo.innerHTML = '👆 Gerakkan tangan ke atas/bawah';
+
+        hands.onResults((results) => {
+            // CRITICAL: Filter for Right Hand only
+            let rightHandIndex = -1;
+
+            if (results.multiHandedness && results.multiHandedness.length > 0) {
+                results.multiHandedness.forEach((hand, index) => {
+                    // Note: MediaPipe labels are often mirrored depending on camera feed. 
+                    // 'Right' refers to the hand identified as the user's right hand.
+                    if (hand.label === 'Right') {
+                        rightHandIndex = index;
                     }
-                }
-                lastHandY = palmY;
-                
-            } else {
-                if (isHandDetected) {
-                    isHandDetected = false;
-                    lastHandY = null;
-                    gestureStatus.innerHTML = '👋 No hand detected';
-                    scrollInfo.innerHTML = '✋ Tunjukkan tangan ke kamera';
-                    if (handStatusEl) handStatusEl.innerHTML = '🖐️ Hand: <span style="color:#aaa">Not detected</span>';
-                    addToLog('Hand lost - Waiting for detection');
-                }
+                });
             }
-        }
-        
-        // Fallback scroll
-        if (scrollContainer) {
-            scrollContainer.addEventListener('wheel', (e) => {
-                if (!isHandDetected) {
-                    targetScrollTop = scrollContainer.scrollTop + e.deltaY;
-                    targetScrollTop = Math.min(scrollContainer.scrollHeight - scrollContainer.clientHeight, Math.max(0, targetScrollTop));
-                    currentScrollTop = targetScrollTop;
-                }
-            });
-            
-            scrollContainer.addEventListener('scroll', () => {
-                if (!isHandDetected) {
-                    targetScrollTop = scrollContainer.scrollTop;
-                    currentScrollTop = targetScrollTop;
-                }
-            });
-        }
-        
-        document.body.addEventListener('click', (e) => {
-            if (!introScreen.classList.contains('hide')) return;
-            createClickEffect(e.clientX, e.clientY);
+
+            if (rightHandIndex !== -1 && results.multiHandLandmarks[rightHandIndex]) {
+                const landmark = results.multiHandLandmarks[rightHandIndex][9]; // Middle finger MCP
+                lerpTarget.x = (1 - landmark.x) * width; // Mirrored for natural feel
+                lerpTarget.y = landmark.y * height;
+                mouse.active = true;
+            } else {
+                mouse.active = false;
+            }
         });
-        
-        console.log("🖐️ Hand Tracking Test Suite Ready!");
-        console.log("📊 Gesture detection active - show your hand to camera");
-    })();
-</script>
+
+        const camera = new Camera(document.createElement('video'), {
+            onFrame: async () => {
+                await hands.send({ image: camera.video });
+            },
+            width: 640,
+            height: 480
+        });
+
+        window.addEventListener('resize', init);
+        init();
+        camera.start();
+        update();
+    </script>
 </body>
 </html>
